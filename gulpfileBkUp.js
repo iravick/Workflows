@@ -2,9 +2,8 @@ var gulp = require('gulp'),
 	gutil = require('gulp-util'),
 	coffee = require('gulp-coffee');
 	browserify = require('gulp-browserify');
+	compass = require('gulp-compass');
 	connect = require('gulp-connect');
-	gulpif = require('gulp-if')
-	uglifiy = require('gulp-uglify')
 	concat = require('gulp-concat');
 
 var env,
@@ -48,8 +47,19 @@ gulp.task('js', function() {
 	gulp.src(jsSources)
 		.pipe(concat('script.js'))
 		.pipe(browserify())
-		.pipe(gulpif(env === 'production', uglifiy()))
 		.pipe(gulp.dest(outputDir + 'js'))
+		.pipe(connect.reload())
+});
+
+gulp.task('compass', function() {
+	gulp.src(sassSources)
+		.pipe(compass({
+			sass: 'components/sass',
+			image: outputDir + 'images',
+			output_style: sassStyle
+		})
+		.on('error', gutil.log))
+		.pipe(gulp.dest(outputDir + 'css'))
 		.pipe(connect.reload())
 });
 
@@ -57,6 +67,7 @@ gulp.task('js', function() {
 gulp.task('watch', function() {
 	gulp.watch(coffeeSources, ['coffee']);
 	gulp.watch(jsSources, ['js']);
+	gulp.watch('components/sass/*.scss', ['compass']);
 	gulp.watch(htmlSources, ['html']);
 	gulp.watch(jsonSources, ['json']);
 });
@@ -78,4 +89,4 @@ gulp.task('json', function() {
 	.pipe(connect.reload())
 })
 
-gulp.task('default', ['html', 'coffee', 'json', 'js', 'connect', 'watch']);
+gulp.task('default', ['html', 'coffee', 'json', 'js', 'compass', 'connect', 'watch']);
